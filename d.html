@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메뉴 입력 - 오늘 급식, 밥값 했을까?</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tray-groove: #C9D0C4;
+    --ink: #20261F;
+    --ink-soft: #55604F;
+    --ink-faint: #8B9484;
+    --rice: #FBF8F1;
+    --soup: #D8E6DE;
+    --kimchi: #C1432B;
+    --spinach: #3F6B4A;
+    --egg: #D98F2B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--tray-groove);
+    font-family: 'Pretendard', sans-serif;
+    color: var(--ink);
+    padding: 20px 14px 40px;
+  }
+  .page { max-width: 720px; margin: 0 auto; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--rice);
+    color: var(--ink-soft);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .back svg { width: 18px; height: 18px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--spinach);
+    margin: 0;
+  }
+
+  /* 1페이지의 01/02/03 반찬 칸을 그대로 가져와 진행 단계 표시로 재사용 */
+  .progress {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: var(--tray-groove);
+    border-radius: 18px;
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+  .progress .dot {
+    border-radius: 12px;
+    padding: 0.7rem 0.6rem;
+    text-align: center;
+    background: var(--rice);
+    opacity: 0.5;
+  }
+  .progress .dot .idx {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .progress .dot span:last-child { font-size: 12px; font-weight: 600; }
+  .progress .dot.active { opacity: 1; background: #EAF1E6; }
+  .progress .dot.active .idx { color: var(--spinach); }
+
+  .tray {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    background: var(--tray-groove);
+    border-radius: 24px;
+    padding: 10px;
+  }
+  .compartment {
+    background: var(--rice);
+    border-radius: 18px;
+    padding: 1.8rem 1.6rem;
+  }
+
+  .compartment label {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .compartment .sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+    line-height: 1.6;
+  }
+  textarea {
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    border: 2px solid var(--tray-groove);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color 0.15s ease;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--spinach);
+  }
+  .counter {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .chip {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip.c1 { background: #EAF1E6; color: var(--spinach); }
+  .chip.c2 { background: #F7E7E1; color: var(--kimchi); }
+  .chip.c3 { background: #FBF0DD; color: var(--egg); }
+
+  .soup {
+    background: var(--soup);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 1.2rem 1.5rem;
+  }
+  .soup .rim {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 3px solid var(--spinach);
+    opacity: 0.7;
+  }
+  .soup span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--spinach);
+    line-height: 1.5;
+  }
+
+  .next {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--spinach);
+    color: var(--rice);
+    border: none;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 15px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  }
+  .next:hover:not(:disabled) { background: #345A3D; transform: translateY(-2px); }
+  .next:disabled { opacity: 0.4; cursor: not-allowed; }
+  .next:focus-visible { outline: 3px solid var(--egg); outline-offset: 3px; }
+  .next svg { width: 16px; height: 16px; }
+
+  @media (min-width: 600px) {
+    .compartment { padding: 2.2rem 2.4rem; }
+    textarea { min-height: 190px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <a class="back" href="index.html" aria-label="이전 페이지로" onclick="">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </a>
+    <p class="eyebrow">급식 영양 분석 서비스</p>
+  </div>
+
+  <div class="progress">
+    <div class="dot active"><span class="idx">01</span><span>메뉴 적기</span></div>
+    <div class="dot"><span class="idx">02</span><span>AI 분석</span></div>
+    <div class="dot"><span class="idx">03</span><span>총평 받기</span></div>
+  </div>
+
+  <div class="tray">
+    <div class="compartment">
+      <label for="menuInput">오늘 급식에 뭐가 나왔나요?</label>
+      <p class="sub">기억나는 메뉴를 그대로 적어주세요. 정확한 이름이 아니어도 괜찮아요.</p>
+      <textarea id="menuInput" placeholder="예) 흰쌀밥, 미역국, 제육볶음, 배추김치, 요구르트"></textarea>
+      <p class="counter"><span id="charCount">0</span>자</p>
+
+      <div class="chips">
+        <button type="button" class="chip c1" data-add="흰쌀밥">+ 흰쌀밥</button>
+        <button type="button" class="chip c2" data-add="제육볶음">+ 제육볶음</button>
+        <button type="button" class="chip c3" data-add="배추김치">+ 배추김치</button>
+        <button type="button" class="chip c1" data-add="미역국">+ 미역국</button>
+        <button type="button" class="chip c3" data-add="요구르트">+ 요구르트</button>
+      </div>
+    </div>
+
+    <div class="soup">
+      <div class="rim"></div>
+      <span>메뉴 이름만 나열해도 AI가 알아서 분석해요.</span>
+    </div>
+
+    <button class="next" id="nextBtn" disabled>
+      다음
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const textarea = document.getElementById('menuInput');
+  const charCount = document.getElementById('charCount');
+  const nextBtn = document.getElementById('nextBtn');
+  const chips = document.querySelectorAll('.chip');
+
+  function updateState() {
+    const value = textarea.value.trim();
+    charCount.textContent = textarea.value.length;
+    nextBtn.disabled = value.length === 0;
+  }
+
+  textarea.addEventListener('input', updateState);
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const toAdd = chip.dataset.add;
+      const current = textarea.value.trim();
+      textarea.value = current ? `${current}, ${toAdd}` : toAdd;
+      updateState();
+      textarea.focus();
+    });
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (nextBtn.disabled) return;
+    // 3페이지(AI 분석 결과 페이지)로 메뉴 내용을 전달
+    sessionStorage.setItem('mealMenu', textarea.value.trim());
+    location.href = 'analysis.html';
+  });
+
+  updateState();
+</script>
+</body>
+</html>
