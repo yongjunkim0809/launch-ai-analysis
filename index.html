@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진접고 개인맞춤급식분석기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tray: #E7EAE4;
+    --tray-groove: #C9D0C4;
+    --ink: #20261F;
+    --ink-soft: #55604F;
+    --rice: #FBF8F1;
+    --soup: #D8E6DE;
+    --kimchi: #C1432B;
+    --spinach: #3F6B4A;
+    --egg: #D98F2B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--tray-groove);
+    font-family: 'Pretendard', sans-serif;
+    color: var(--ink);
+    padding: 20px 14px 40px;
+  }
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--spinach);
+    margin: 0 0 12px;
+  }
+  /* 모바일 기본: 세로로 쌓여서 스크롤되는 1열 구조 */
+  .tray {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "rice"
+      "soup"
+      "step1"
+      "step2"
+      "step3";
+    gap: 10px;
+    background: var(--tray-groove);
+    border-radius: 24px;
+    padding: 10px;
+  }
+  .compartment {
+    background: var(--rice);
+    border-radius: 18px;
+    padding: 1.8rem 1.6rem;
+  }
+  .rice {
+    grid-area: rice;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .rice h1 {
+    font-size: clamp(28px, 4.4vw, 44px);
+    line-height: 1.25;
+    font-weight: 800;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .rice p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0 0 28px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--spinach);
+    color: var(--rice);
+    border: none;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .cta:hover { background: #345A3D; transform: translateY(-2px); }
+  .cta:focus-visible { outline: 3px solid var(--egg); outline-offset: 3px; }
+  .cta svg { width: 16px; height: 16px; }
+
+  /* 투명 배경 일러스트를 식판 위에 살짝 얹힌 것처럼 그림자만으로 자연스럽게 배치 */
+  .rice-photo {
+    align-self: center;
+    max-width: 340px;
+    width: 100%;
+    transform: rotate(-1.4deg);
+  }
+  .rice-photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 12px 18px rgba(32, 38, 31, 0.22));
+  }
+
+  /* 모바일 기본: 다른 칸들과 같은 가로형 카드, 아이콘과 문구를 나란히 배치 */
+  .soup {
+    grid-area: soup;
+    background: var(--soup);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    padding: 1.4rem 1.6rem;
+  }
+  .soup .rim {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 3px solid var(--spinach);
+    margin-bottom: 0;
+    opacity: 0.7;
+  }
+  .soup span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--spinach);
+    line-height: 1.5;
+  }
+
+  .step {
+    border-radius: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.8rem 1.6rem;
+  }
+  .step .idx {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .step h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+  .step p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  #step1 { grid-area: step1; background: #EAF1E6; }
+  #step1 .idx { color: var(--spinach); }
+  #step2 { grid-area: step2; background: #F7E7E1; }
+  #step2 .idx { color: var(--kimchi); }
+  #step3 { grid-area: step3; background: #FBF0DD; }
+  #step3 .idx { color: var(--egg); }
+
+  /* 태블릿 이상: 식판처럼 4칸 그리드로 확장, 국그릇 칸은 원형으로 전환 */
+  @media (min-width: 720px) {
+    .tray {
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-areas:
+        "rice rice rice rice"
+        "soup step1 step2 step3";
+      gap: 12px;
+      border-radius: 32px;
+      padding: 12px;
+    }
+    .compartment {
+      border-radius: 22px;
+      padding: 2.4rem 2.6rem;
+    }
+    .rice {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .rice h1, .rice p { max-width: 42ch; }
+    .rice-photo {
+      max-width: 260px;
+      flex-shrink: 0;
+      margin: 0;
+    }
+    .soup {
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      border-radius: 50%;
+      aspect-ratio: 1 / 1;
+      padding: 1.6rem;
+    }
+    .soup .rim {
+      width: 46px;
+      height: 46px;
+      margin-bottom: 12px;
+    }
+    .step {
+      padding: 1.8rem 1.6rem;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">급식 영양 분석 서비스</p>
+  <div class="tray">
+    <div class="compartment rice">
+      <div class="rice-text">
+        <h1>진접고<br>급식분석기</h1>
+        <p>오늘 나온 급식 메뉴를 그대로 적어주면, AI가 영양소를 분석하고 부족한 부분과 한 줄 총평을 알려드려요.</p>
+        <button class="cta" onclick="location.href='d.html'">
+          메뉴 입력하러 가기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="rice-photo">
+        <img src="w.png" alt="채소와 방울토마토가 담긴 샐러드 그릇 일러스트">
+      </div>
+    </div>
+
+    <div class="soup">
+      <div class="rim"></div>
+      <span>매 끼니,<br>놓치지 않게</span>
+    </div>
+
+    <div class="compartment step" id="step1">
+      <p class="idx">01</p>
+      <h3>메뉴 적기</h3>
+      <p>오늘 나온 급식을  입력해주세요.</p>
+    </div>
+
+    <div class="compartment step" id="step2">
+      <p class="idx">02</p>
+      <h3>AI 분석</h3>
+      <p>탄수화물, 단백질, 지방 3대영양소를 꼼꼼히 살펴봐요.</p>
+    </div>
+
+    <div class="compartment step" id="step3">
+      <p class="idx">03</p>
+      <h3>총평 받기</h3>
+      <p>부족한 영양소와 한 줄 총평을 확인해요.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
